@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 // app/documentation/user-guide/ContentArea.jsx
 import React from "react";
 import CodeBlock from "./CodeBlock";
