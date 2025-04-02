@@ -1,7 +1,7 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import React, { useState, useEffect } from "react";
+import { Suspense } from 'react';
 import { useRouter } from "next/navigation";
 import { GoArrowLeft } from "react-icons/go";
 import Papa from "papaparse";
@@ -18,7 +18,7 @@ const NUM_BINS = 10;
 const MAX_PREVIEW_COLUMNS = 8;
 const MAX_CLIENT_PROCESS_SIZE_MB = 1;
 
-export default function ProcessingResultsPage() {
+function ProcessingResultsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const filename = searchParams.get("file");
@@ -1131,5 +1131,13 @@ export default function ProcessingResultsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProcessingResultsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProcessingResultsContent />
+    </Suspense>
   );
 }
