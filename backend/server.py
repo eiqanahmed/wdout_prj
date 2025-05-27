@@ -71,6 +71,7 @@ def process_file():
 
     file = request.files["file"]
     original_filename = file.filename
+    processed_filename = f"processed_{original_filename}"
     
     print(f"Processing file: {original_filename}")
     
@@ -207,7 +208,7 @@ def process_file():
         print(f"Processing complete: {len(processed_df)} rows in result")
         
         # Save processed file with consistent path handling
-        processed_filename = f"processed_{original_filename}"
+        # processed_filename = f"processed_{original_filename}"
         processed_file_path = os.path.join(PROCESSED_FOLDER, processed_filename)
         
         # Make sure the processed folder exists (double check)
