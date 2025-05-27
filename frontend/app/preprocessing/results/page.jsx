@@ -49,8 +49,8 @@ function ProcessingResultsContent() {
       try {
 
         const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-        // const response = await fetch(`/files/${fileName}`);
-        const response = await fetch(`${BASE_URL}/download/${fileName}`);
+        const response = await fetch(`/files/${fileName}`);
+        // const response = await fetch(`${BASE_URL}/download/${fileName}`);
 
         
         // Check file size
