@@ -59,9 +59,231 @@ def safe_remove_file(file_path):
 def return_home():
     return jsonify({"message": "it works!" })
 
+# @app.route("/process", methods=["POST"])
+# def process_file():
+#     # Add these debug lines
+#     print(f"Current working directory: {os.getcwd()}")
+#     print(f"Request received with files: {request.files}")
+#     print(f"Request form data: {request.form}")
+    
+#     if "file" not in request.files:
+#         return jsonify({"error": "No file uploaded"}), 400
+
+#     file = request.files["file"]
+#     original_filename = file.filename
+#     processed_filename = f"processed_{original_filename}"
+#     original_saved_name = f"original_{original_filename}"
+    
+#     print(f"Processing file: {original_filename}")
+    
+#     # Ensure all directories exist again (in case they were manually deleted)
+#     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+#     os.makedirs(PROCESSED_FOLDER, exist_ok=True)
+#     os.makedirs(PUBLIC_FILES_FOLDER, exist_ok=True)
+    
+#     # Use absolute paths for all file operations
+#     file_path = os.path.join(UPLOAD_FOLDER, original_filename)
+#     # # public_original_path = os.path.join(PUBLIC_FILES_FOLDER, "file.csv")
+#     # public_processed_path = os.path.join(PUBLIC_FILES_FOLDER, "file_processed.csv")
+#     # # public_processed_path = os.path.join(PUBLIC_FILES_FOLDER, processed_filename)
+#     public_original_path = os.path.join(PROCESSED_FOLDER, original_saved_name)
+#     public_processed_path = os.path.join(PROCESSED_FOLDER, processed_filename)
+    
+#     # Save uploaded file
+#     try:
+#         file.save(file_path)
+#         print(f"Saved uploaded file to: {file_path}")
+        
+#         # Verify the file exists
+#         if os.path.exists(file_path):
+#             print(f"Verified: Original file saved at {file_path}")
+#             print(f"File size: {os.path.getsize(file_path)} bytes")
+#         else:
+#             print(f"ERROR: Original file was not saved to {file_path}")
+#             return jsonify({"error": "Failed to save uploaded file"}), 500
+#     except Exception as e:
+#         print(f"Error saving uploaded file: {e}")
+#         return jsonify({"error": f"Error saving uploaded file: {str(e)}"}), 500
+    
+#     # Remove existing files if they exist
+#     safe_remove_file(public_original_path)
+#     safe_remove_file(public_processed_path)
+    
+#     # Copy file to public folder with error handling
+#     try:
+#         # Ensure the directory exists again (in case it was deleted)
+#         os.makedirs(os.path.dirname(public_original_path), exist_ok=True)
+        
+#         shutil.copy2(file_path, public_original_path)
+#         print(f"Copied file to public folder: {public_original_path}")
+        
+#         # Verify copy succeeded
+#         if os.path.exists(public_original_path):
+#             print(f"Verified: File copied to {public_original_path}")
+#             print(f"File size: {os.path.getsize(public_original_path)} bytes")
+#         else:
+#             print(f"ERROR: File was not copied to {public_original_path}")
+#     except Exception as e:
+#         print(f"Error copying to public folder: {e}")
+#         # Continue processing even if copy fails
+    
+#     # Check file size and potentially downsample for large files
+#     try:
+#         file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
+#         downsample_warning = False
+        
+#         # If file is over 10MB, consider downsampling for preview
+#         if file_size_mb > 10:
+#             try:
+#                 df = pd.read_csv(file_path)
+#                 sample_size = min(10000, len(df))
+#                 df_sample = df.sample(sample_size)
+#                 df_sample.to_csv(public_original_path, index=False)
+#                 downsample_warning = True
+#                 print(f"Downsampled large file for preview: {sample_size} rows")
+#             except Exception as e:
+#                 print(f"Warning: Could not downsample large file: {e}")
+#     except Exception as e:
+#         print(f"Error checking file size: {e}")
+#         # Continue processing even if this fails
+
+#     # SIMPLIFIED USER OPTIONS
+#     # 1. Model type: regression (0) or classification (1)
+#     model_type_int = int(request.form.get("model_type", 1))
+    
+#     # 2. Critical fix: Convert sampling to the integer value that the preprocess module expects
+#     # Get the integer value of sampling directly, which is what the module expects
+#     sampling_int = int(request.form.get("sampling", 0))
+    
+#     # Map the integer to the correct string for logging and response
+#     sampling_strategy_map = {
+#         0: "none",
+#         1: "undersampling",
+#         2: "oversampling", 
+#         3: "smote"
+#     }
+    
+#     # For display and logging
+#     sampling_strategy = sampling_strategy_map.get(sampling_int, "none")
+    
+#     # Log the sampling values with clear differentiation
+#     print(f"⚠️ SAMPLING INT (what preprocess gets): {sampling_int}")
+#     print(f"⚠️ SAMPLING STRATEGY (display name): {sampling_strategy}")
+    
+#     # 3. Dataset type: cross-sectional (0) or time-series (1)
+#     dataset_type_int = int(request.form.get("dataset_type", 0))
+    
+#     # 4. Column selections
+#     target_column = request.form.get("target_column", "")
+#     drop_columns = json.loads(request.form.get("drop_columns", "[]"))
+#     untouched_columns = json.loads(request.form.get("untouched_columns", "[]"))
+
+#     print(f"Processing with options: model_type={model_type_int}, sampling={sampling_int}, dataset_type={dataset_type_int}")
+#     print(f"Target column: {target_column}")
+#     print(f"Columns to drop: {drop_columns}")
+#     print(f"Untouched columns: {untouched_columns}")
+
+#     try:
+#         # Call preprocess_pipeline with the integer sampling value
+#         # This is the critical fix - passing the sampling value as an integer
+#         if sampling_strategy != "none":
+#             processed_df = preprocess.preprocess_pipeline(
+#                 file_path=file_path,
+#                 target_column=target_column,
+#                 dropped_columns=drop_columns,
+#                 untouched_columns=untouched_columns,
+#                 type_dataset=dataset_type_int,
+#                 sampling=sampling_int,
+#                 classfication=model_type_int
+#             )
+#         else:
+#             processed_df = preprocess.preprocess_pipeline(
+#             file_path=file_path,
+#             target_column=target_column,
+#             dropped_columns=drop_columns,
+#             untouched_columns=untouched_columns,
+#             type_dataset=dataset_type_int,
+#             sampling=sampling_int,
+#             classfication=model_type_int,
+#             strategy_sample=sampling_strategy,
+#         )
+        
+#         print(f"Processing complete: {len(processed_df)} rows in result")
+        
+#         # Save processed file with consistent path handling
+#         # processed_filename = f"processed_{original_filename}"
+#         processed_file_path = os.path.join(PROCESSED_FOLDER, processed_filename)
+        
+#         # Make sure the processed folder exists (double check)
+#         os.makedirs(PROCESSED_FOLDER, exist_ok=True)
+        
+#         # Save with absolute path to ensure correct location
+#         processed_df.to_csv(processed_file_path, index=False)
+#         print(f"Saved processed file to: {processed_file_path}")
+        
+#         # Verify the file exists after saving
+#         if os.path.exists(processed_file_path):
+#             print(f"Verified: File exists at {processed_file_path}")
+#             print(f"File size: {os.path.getsize(processed_file_path)} bytes")
+#         else:
+#             print(f"ERROR: File was not saved to {processed_file_path}")
+#             return jsonify({"error": "Failed to save processed file"}), 500
+        
+#         # Ensure the destination path is available
+#         safe_remove_file(public_processed_path)
+        
+#         # Make sure public files folder exists again
+#         os.makedirs(os.path.dirname(public_processed_path), exist_ok=True)
+        
+#         # Save processed data to public folder with better error handling
+#         try:
+#             if len(processed_df) > 10000:
+#                 processed_df.sample(10000).to_csv(public_processed_path, index=False)
+#                 print(f"Saved downsampled processed file (10000 rows) to public folder")
+#             else:
+#                 processed_df.to_csv(public_processed_path, index=False)
+#                 print(f"Saved full processed file to public folder")
+            
+#             # Verify this file exists too
+#             if os.path.exists(public_processed_path):
+#                 print(f"Verified: Processed file saved to {public_processed_path}")
+#                 print(f"File size: {os.path.getsize(public_processed_path)} bytes")
+#             else:
+#                 print(f"ERROR: Processed file was not saved to {public_processed_path}")
+#         except Exception as e:
+#             print(f"Error saving processed file to public folder: {e}")
+#             # Continue since we already saved to the processed folder
+
+#         # Clean up original file
+#         safe_remove_file(file_path)
+
+#         # Prepare options for localStorage on frontend
+#         options_used = {
+#             "model_type": model_type_int,
+#             "sampling": sampling_strategy,  # Use the string representation for UI display
+#             "dataset_type": dataset_type_int,
+#             "target_column": target_column,
+#             "columns_dropped": len(drop_columns),
+#             "columns_untouched": len(untouched_columns)
+#         }
+        
+#         print(f"Returning success response with filename: {processed_filename}")
+#         print(f"Options used: {options_used}")
+
+#         return jsonify({
+#             "message": "File processed successfully", 
+#             "filename": processed_filename,
+#             "downsample_warning": downsample_warning,
+#             "options_used": options_used
+#         }), 200
+
+#     except Exception as e:
+#         import traceback
+#         print(f"Error processing file: {str(e)}")
+#         print(traceback.format_exc())  # Print full traceback for debugging
+#         return jsonify({"error": str(e)}), 500
 @app.route("/process", methods=["POST"])
 def process_file():
-    # Add these debug lines
     print(f"Current working directory: {os.getcwd()}")
     print(f"Request received with files: {request.files}")
     print(f"Request form data: {request.form}")
@@ -71,121 +293,63 @@ def process_file():
 
     file = request.files["file"]
     original_filename = file.filename
-    processed_filename = f"processed_{original_filename}"
-    original_saved_name = f"original_{original_filename}"
-    
     print(f"Processing file: {original_filename}")
     
-    # Ensure all directories exist again (in case they were manually deleted)
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     os.makedirs(PROCESSED_FOLDER, exist_ok=True)
     os.makedirs(PUBLIC_FILES_FOLDER, exist_ok=True)
-    
-    # Use absolute paths for all file operations
+
     file_path = os.path.join(UPLOAD_FOLDER, original_filename)
-    # # public_original_path = os.path.join(PUBLIC_FILES_FOLDER, "file.csv")
-    # public_processed_path = os.path.join(PUBLIC_FILES_FOLDER, "file_processed.csv")
-    # # public_processed_path = os.path.join(PUBLIC_FILES_FOLDER, processed_filename)
-    public_original_path = os.path.join(PROCESSED_FOLDER, original_saved_name)
-    public_processed_path = os.path.join(PROCESSED_FOLDER, processed_filename)
+    public_original_path = os.path.join(PUBLIC_FILES_FOLDER, "file.csv")
     
-    # Save uploaded file
     try:
         file.save(file_path)
         print(f"Saved uploaded file to: {file_path}")
-        
-        # Verify the file exists
-        if os.path.exists(file_path):
-            print(f"Verified: Original file saved at {file_path}")
-            print(f"File size: {os.path.getsize(file_path)} bytes")
-        else:
-            print(f"ERROR: Original file was not saved to {file_path}")
+        if not os.path.exists(file_path):
+            print(f"ERROR: File was not saved to {file_path}")
             return jsonify({"error": "Failed to save uploaded file"}), 500
     except Exception as e:
         print(f"Error saving uploaded file: {e}")
         return jsonify({"error": f"Error saving uploaded file: {str(e)}"}), 500
-    
-    # Remove existing files if they exist
+
     safe_remove_file(public_original_path)
-    safe_remove_file(public_processed_path)
-    
-    # Copy file to public folder with error handling
+
     try:
-        # Ensure the directory exists again (in case it was deleted)
-        os.makedirs(os.path.dirname(public_original_path), exist_ok=True)
-        
         shutil.copy2(file_path, public_original_path)
         print(f"Copied file to public folder: {public_original_path}")
-        
-        # Verify copy succeeded
-        if os.path.exists(public_original_path):
-            print(f"Verified: File copied to {public_original_path}")
-            print(f"File size: {os.path.getsize(public_original_path)} bytes")
-        else:
-            print(f"ERROR: File was not copied to {public_original_path}")
     except Exception as e:
         print(f"Error copying to public folder: {e}")
-        # Continue processing even if copy fails
-    
-    # Check file size and potentially downsample for large files
+
+    # Downsample large file
     try:
         file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
         downsample_warning = False
-        
-        # If file is over 10MB, consider downsampling for preview
         if file_size_mb > 10:
-            try:
-                df = pd.read_csv(file_path)
-                sample_size = min(10000, len(df))
-                df_sample = df.sample(sample_size)
-                df_sample.to_csv(public_original_path, index=False)
-                downsample_warning = True
-                print(f"Downsampled large file for preview: {sample_size} rows")
-            except Exception as e:
-                print(f"Warning: Could not downsample large file: {e}")
+            df = pd.read_csv(file_path)
+            sample_size = min(10000, len(df))
+            df.sample(sample_size).to_csv(public_original_path, index=False)
+            downsample_warning = True
+            print(f"Downsampled large file for preview: {sample_size} rows")
     except Exception as e:
-        print(f"Error checking file size: {e}")
-        # Continue processing even if this fails
+        print(f"Warning: Could not downsample: {e}")
 
-    # SIMPLIFIED USER OPTIONS
-    # 1. Model type: regression (0) or classification (1)
     model_type_int = int(request.form.get("model_type", 1))
-    
-    # 2. Critical fix: Convert sampling to the integer value that the preprocess module expects
-    # Get the integer value of sampling directly, which is what the module expects
     sampling_int = int(request.form.get("sampling", 0))
-    
-    # Map the integer to the correct string for logging and response
-    sampling_strategy_map = {
-        0: "none",
-        1: "undersampling",
-        2: "oversampling", 
-        3: "smote"
-    }
-    
-    # For display and logging
-    sampling_strategy = sampling_strategy_map.get(sampling_int, "none")
-    
-    # Log the sampling values with clear differentiation
-    print(f"⚠️ SAMPLING INT (what preprocess gets): {sampling_int}")
-    print(f"⚠️ SAMPLING STRATEGY (display name): {sampling_strategy}")
-    
-    # 3. Dataset type: cross-sectional (0) or time-series (1)
     dataset_type_int = int(request.form.get("dataset_type", 0))
-    
-    # 4. Column selections
     target_column = request.form.get("target_column", "")
     drop_columns = json.loads(request.form.get("drop_columns", "[]"))
     untouched_columns = json.loads(request.form.get("untouched_columns", "[]"))
 
-    print(f"Processing with options: model_type={model_type_int}, sampling={sampling_int}, dataset_type={dataset_type_int}")
-    print(f"Target column: {target_column}")
-    print(f"Columns to drop: {drop_columns}")
-    print(f"Untouched columns: {untouched_columns}")
+    sampling_strategy_map = {
+        0: "none", 1: "undersampling", 2: "oversampling", 3: "smote"
+    }
+    sampling_strategy = sampling_strategy_map.get(sampling_int, "none")
+
+    print(f"⚠️ SAMPLING INT: {sampling_int}")
+    print(f"⚠️ STRATEGY: {sampling_strategy}")
+    print(f"Processing with model={model_type_int}, dataset={dataset_type_int}")
 
     try:
-        # Call preprocess_pipeline with the integer sampling value
-        # This is the critical fix - passing the sampling value as an integer
         if sampling_strategy != "none":
             processed_df = preprocess.preprocess_pipeline(
                 file_path=file_path,
@@ -198,80 +362,46 @@ def process_file():
             )
         else:
             processed_df = preprocess.preprocess_pipeline(
-            file_path=file_path,
-            target_column=target_column,
-            dropped_columns=drop_columns,
-            untouched_columns=untouched_columns,
-            type_dataset=dataset_type_int,
-            sampling=sampling_int,
-            classfication=model_type_int,
-            strategy_sample=sampling_strategy,
-        )
-        
-        print(f"Processing complete: {len(processed_df)} rows in result")
-        
-        # Save processed file with consistent path handling
-        # processed_filename = f"processed_{original_filename}"
-        processed_file_path = os.path.join(PROCESSED_FOLDER, processed_filename)
-        
-        # Make sure the processed folder exists (double check)
-        os.makedirs(PROCESSED_FOLDER, exist_ok=True)
-        
-        # Save with absolute path to ensure correct location
-        processed_df.to_csv(processed_file_path, index=False)
-        print(f"Saved processed file to: {processed_file_path}")
-        
-        # Verify the file exists after saving
-        if os.path.exists(processed_file_path):
-            print(f"Verified: File exists at {processed_file_path}")
-            print(f"File size: {os.path.getsize(processed_file_path)} bytes")
-        else:
-            print(f"ERROR: File was not saved to {processed_file_path}")
-            return jsonify({"error": "Failed to save processed file"}), 500
-        
-        # Ensure the destination path is available
-        safe_remove_file(public_processed_path)
-        
-        # Make sure public files folder exists again
-        os.makedirs(os.path.dirname(public_processed_path), exist_ok=True)
-        
-        # Save processed data to public folder with better error handling
-        try:
-            if len(processed_df) > 10000:
-                processed_df.sample(10000).to_csv(public_processed_path, index=False)
-                print(f"Saved downsampled processed file (10000 rows) to public folder")
-            else:
-                processed_df.to_csv(public_processed_path, index=False)
-                print(f"Saved full processed file to public folder")
-            
-            # Verify this file exists too
-            if os.path.exists(public_processed_path):
-                print(f"Verified: Processed file saved to {public_processed_path}")
-                print(f"File size: {os.path.getsize(public_processed_path)} bytes")
-            else:
-                print(f"ERROR: Processed file was not saved to {public_processed_path}")
-        except Exception as e:
-            print(f"Error saving processed file to public folder: {e}")
-            # Continue since we already saved to the processed folder
+                file_path=file_path,
+                target_column=target_column,
+                dropped_columns=drop_columns,
+                untouched_columns=untouched_columns,
+                type_dataset=dataset_type_int,
+                sampling=sampling_int,
+                classfication=model_type_int,
+                strategy_sample=sampling_strategy
+            )
 
-        # Clean up original file
+        timestamp = int(time.time())
+        processed_filename = f"{timestamp}_{original_filename.replace(' ', '_')}"
+        processed_file_path = os.path.join(PROCESSED_FOLDER, processed_filename)
+        public_processed_path = os.path.join(PUBLIC_FILES_FOLDER, processed_filename)
+
+        processed_df.to_csv(processed_file_path, index=False)
+        print(f"Saved processed file: {processed_file_path}")
+
+        safe_remove_file(public_processed_path)
+
+        if len(processed_df) > 10000:
+            processed_df.sample(10000).to_csv(public_processed_path, index=False)
+            print("Saved downsampled processed file to public folder")
+        else:
+            processed_df.to_csv(public_processed_path, index=False)
+            print("Saved full processed file to public folder")
+
         safe_remove_file(file_path)
 
-        # Prepare options for localStorage on frontend
         options_used = {
             "model_type": model_type_int,
-            "sampling": sampling_strategy,  # Use the string representation for UI display
+            "sampling": sampling_strategy,
             "dataset_type": dataset_type_int,
             "target_column": target_column,
             "columns_dropped": len(drop_columns),
             "columns_untouched": len(untouched_columns)
         }
-        
-        print(f"Returning success response with filename: {processed_filename}")
-        print(f"Options used: {options_used}")
 
         return jsonify({
-            "message": "File processed successfully", 
+            "message": "File processed successfully",
             "filename": processed_filename,
             "downsample_warning": downsample_warning,
             "options_used": options_used
@@ -280,7 +410,7 @@ def process_file():
     except Exception as e:
         import traceback
         print(f"Error processing file: {str(e)}")
-        print(traceback.format_exc())  # Print full traceback for debugging
+        print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
 @app.route("/download/<filename>", methods=["GET"])
