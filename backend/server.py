@@ -83,9 +83,11 @@ def process_file():
     
     # Use absolute paths for all file operations
     file_path = os.path.join(UPLOAD_FOLDER, original_filename)
-    public_original_path = os.path.join(PUBLIC_FILES_FOLDER, "file.csv")
+    # # public_original_path = os.path.join(PUBLIC_FILES_FOLDER, "file.csv")
     # public_processed_path = os.path.join(PUBLIC_FILES_FOLDER, "file_processed.csv")
-    public_processed_path = os.path.join(PUBLIC_FILES_FOLDER, processed_filename)
+    # # public_processed_path = os.path.join(PUBLIC_FILES_FOLDER, processed_filename)
+    public_original_path = os.path.join(PROCESSED_FOLDER, original_saved_name)
+    public_processed_path = os.path.join(PROCESSED_FOLDER, processed_filename)
     
     # Save uploaded file
     try:
