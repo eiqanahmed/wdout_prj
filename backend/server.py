@@ -72,6 +72,7 @@ def process_file():
     file = request.files["file"]
     original_filename = file.filename
     processed_filename = f"processed_{original_filename}"
+    original_saved_name = f"original_{original_filename}"
     
     print(f"Processing file: {original_filename}")
     
