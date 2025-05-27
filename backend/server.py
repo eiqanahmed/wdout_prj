@@ -403,6 +403,7 @@ def process_file():
         return jsonify({
             "message": "File processed successfully",
             "filename": processed_filename,
+            "original_filename": original_filename,
             "downsample_warning": downsample_warning,
             "options_used": options_used
         }), 200
