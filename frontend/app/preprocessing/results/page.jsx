@@ -340,7 +340,7 @@ function ProcessingResultsContent() {
 
         // Load CSV data
         const beforeData = await fetchCSVData("file.csv");
-        const afterData = await fetchCSVData(filename);
+        const afterData = await fetchCSVData("file_processed.csv");
     
         if (!afterData || afterData.length === 0) {
           setError("No data found in the processed file.");
