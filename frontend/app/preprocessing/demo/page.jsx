@@ -120,17 +120,35 @@ export default function PreprocessingConfig() {
         headers: { "Content-Type": "multipart/form-data" },
       });
   
-      const filename = response.data.filename;
-      console.log("Backend responded with filename:", filename);
-      console.log("Options used:", response.data.options_used);
+      // const filename = response.data.filename;
+      // console.log("Backend responded with filename:", filename);
+      // console.log("Options used:", response.data.options_used);
   
-      // Make sure we store the correct sampling strategy string in localStorage
-      localStorage.setItem('processingOptions', JSON.stringify({
-        ...response.data.options_used,
-        sampling: response.data.options_used.sampling || samplingStrategy
+      // // Make sure we store the correct sampling strategy string in localStorage
+      // localStorage.setItem('processingOptions', JSON.stringify({
+      //   ...response.data.options_used,
+      //   sampling: response.data.options_used.sampling || samplingStrategy
+      // }));
+  
+      // router.push(`/preprocessing/results?file=${filename}`);
+      const { filename, original_filename, options_used } = response.data;
+
+      console.log("Backend responded with processed filename:", filename);
+      console.log("Backend responded with original filename:", original_filename);
+      
+      // Store both filenames in localStorage
+      localStorage.setItem("processedFilename", filename);
+      localStorage.setItem("originalFilename", original_filename);
+      
+      // Also store processing options
+      localStorage.setItem("processingOptions", JSON.stringify({
+        ...options_used,
+        sampling: options_used.sampling || samplingStrategy
       }));
-  
+      
+      // Redirect to results page with the processed file name
       router.push(`/preprocessing/results?file=${filename}`);
+
     } catch (err) {
       console.error("Processing failed:", err);
       alert(`Something went wrong while processing the file: ${err.response?.data?.error || err.message}`);
