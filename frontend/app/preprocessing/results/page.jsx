@@ -82,27 +82,20 @@ function ProcessingResultsContent() {
     //     return [];
     //   }
     // };
-    const fetchCSVData = async (fileName) => {
+    const fetchCSVData = async (fileName, isOriginal) => {
   try {
     const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-    // Use the backend download route
     const response = await fetch(`${BASE_URL}/download/${fileName}`);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
 
-    // Check file size
     const contentLength = response.headers.get('content-length');
     const fileSizeMB = contentLength ? parseInt(contentLength) / (1024 * 1024) : 0;
-    
-    if (fileName === "file.csv") {
+
+    if (isOriginal) {
       setOriginalFileSize(fileSizeMB);
-    } else if (fileName === "file_processed.csv" || fileName.startsWith("processed_")) {
+    } else {
       setProcessedFileSize(fileSizeMB);
     }
-    
+
     if (fileSizeMB > MAX_CLIENT_PROCESS_SIZE_MB) {
       setFileSizeWarning(true);
     }
@@ -122,6 +115,7 @@ function ProcessingResultsContent() {
     return [];
   }
 };
+
 
 
     // Analyze column data types and null values
@@ -384,15 +378,20 @@ function ProcessingResultsContent() {
         }
 
         // Load CSV data
-        const beforeData = await fetchCSVData("file.csv");
-        const afterData = await fetchCSVData(filename);
-    
+        // Grab original filename from query param
+        const originalFilename = filename.replace(/^processed_/, "");
+        const processedFilename = filename;
+        
+        const beforeData = await fetchCSVData(originalFilename, true);    // isOriginal = true
+        const afterData = await fetchCSVData(processedFilename, false);   // isOriginal = false
+        
         if (!afterData || afterData.length === 0) {
           setError("No data found in the processed file.");
           setColumns([]);
           setIsLoading(false);
           return;
         }
+
     
         // Get column names
         const beforeColNames = beforeData && beforeData.length > 0 ? Object.keys(beforeData[0]) : [];
