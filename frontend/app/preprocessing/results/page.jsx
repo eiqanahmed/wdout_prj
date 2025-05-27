@@ -45,43 +45,84 @@ function ProcessingResultsContent() {
    * Fetch and process CSV data
    */
   useEffect(() => {
+    // const fetchCSVData = async (fileName) => {
+    //   try {
+
+    //     const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+    //     const response = await fetch(`/files/${fileName}`);
+    //     // const response = await fetch(`${BASE_URL}/download/${fileName}`);
+
+        
+    //     // Check file size
+    //     const contentLength = response.headers.get('content-length');
+    //     const fileSizeMB = contentLength ? parseInt(contentLength) / (1024 * 1024) : 0;
+        
+    //     if (fileName === "file.csv") {
+    //       setOriginalFileSize(fileSizeMB);
+    //     } else if (fileName === "file_processed.csv") {
+    //       setProcessedFileSize(fileSizeMB);
+    //     }
+        
+    //     if (fileSizeMB > MAX_CLIENT_PROCESS_SIZE_MB) {
+    //       setFileSizeWarning(true);
+    //     }
+        
+    //     const csvText = await response.text();
+    //     return new Promise((resolve) => {
+    //       Papa.parse(csvText, {
+    //         header: true,
+    //         dynamicTyping: true,
+    //         skipEmptyLines: true,
+    //         complete: (results) => resolve(results.data),
+    //       });
+    //     });
+    //   } catch (err) {
+    //     console.error(`Error fetching ${fileName}:`, err);
+    //     setError(`Could not load ${fileName}. Please check if the file exists.`);
+    //     return [];
+    //   }
+    // };
     const fetchCSVData = async (fileName) => {
-      try {
+  try {
+    const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-        const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-        const response = await fetch(`/files/${fileName}`);
-        // const response = await fetch(`${BASE_URL}/download/${fileName}`);
+    // Use the backend download route
+    const response = await fetch(`${BASE_URL}/download/${fileName}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-        
-        // Check file size
-        const contentLength = response.headers.get('content-length');
-        const fileSizeMB = contentLength ? parseInt(contentLength) / (1024 * 1024) : 0;
-        
-        if (fileName === "file.csv") {
-          setOriginalFileSize(fileSizeMB);
-        } else if (fileName === "file_processed.csv") {
-          setProcessedFileSize(fileSizeMB);
-        }
-        
-        if (fileSizeMB > MAX_CLIENT_PROCESS_SIZE_MB) {
-          setFileSizeWarning(true);
-        }
-        
-        const csvText = await response.text();
-        return new Promise((resolve) => {
-          Papa.parse(csvText, {
-            header: true,
-            dynamicTyping: true,
-            skipEmptyLines: true,
-            complete: (results) => resolve(results.data),
-          });
-        });
-      } catch (err) {
-        console.error(`Error fetching ${fileName}:`, err);
-        setError(`Could not load ${fileName}. Please check if the file exists.`);
-        return [];
-      }
-    };
+    // Check file size
+    const contentLength = response.headers.get('content-length');
+    const fileSizeMB = contentLength ? parseInt(contentLength) / (1024 * 1024) : 0;
+    
+    if (fileName === "file.csv") {
+      setOriginalFileSize(fileSizeMB);
+    } else if (fileName === "file_processed.csv" || fileName.startsWith("processed_")) {
+      setProcessedFileSize(fileSizeMB);
+    }
+    
+    if (fileSizeMB > MAX_CLIENT_PROCESS_SIZE_MB) {
+      setFileSizeWarning(true);
+    }
+
+    const csvText = await response.text();
+    return new Promise((resolve) => {
+      Papa.parse(csvText, {
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        complete: (results) => resolve(results.data),
+      });
+    });
+  } catch (err) {
+    console.error(`Error fetching ${fileName}:`, err);
+    setError(`Could not load ${fileName}. Please check if the backend is running and the file exists.`);
+    return [];
+  }
+};
+
 
     // Analyze column data types and null values
     const getColumnInfo = (data) => {
@@ -344,7 +385,7 @@ function ProcessingResultsContent() {
 
         // Load CSV data
         const beforeData = await fetchCSVData("file.csv");
-        const afterData = await fetchCSVData("file_processed.csv");
+        const afterData = await fetchCSVData(filename);
     
         if (!afterData || afterData.length === 0) {
           setError("No data found in the processed file.");
